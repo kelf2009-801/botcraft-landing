@@ -410,7 +410,13 @@
       100% { background-position: 60px 60px; }
     }
 
-    /* ── Reduced Motion ── */
+    /* ── 3D Tilt Cards ── */
+    .tilt-container { perspective: 800px; }
+    .tilt-card {
+      transition: transform 0.1s ease-out;
+      transform-style: preserve-3d;
+    }
+    .tilt-card:hover { z-index: 10; }
     @media (prefers-reduced-motion: reduce) {
       .reveal { transition: none; }
       .hero-rings { animation: none; }
@@ -699,16 +705,34 @@
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
-    document.querySelectorAll('section, .project-card, .testimonial-card, .about-card, .cta-section')
+    document.querySelectorAll('section, .tilt-container, .cta-section')
       .forEach(el => { el.classList.add('reveal'); observer.observe(el); });
 
-    // ── Mouse-Tracking Glow ──
+    // ── Mouse-Tracking Glow + 3D Tilt ──
     document.querySelectorAll('.project-card, .testimonial-card, .about-card')
       .forEach(card => {
+        // Wrap in tilt container
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tilt-container';
+        card.parentNode.insertBefore(wrapper, card);
+        wrapper.appendChild(card);
+        card.classList.add('tilt-card');
+
         card.addEventListener('mousemove', e => {
           const r = card.getBoundingClientRect();
-          card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
-          card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+          const x = (e.clientX - r.left) / r.width;
+          const y = (e.clientY - r.top) / r.height;
+          card.style.setProperty('--mx', (x * 100) + '%');
+          card.style.setProperty('--my', (y * 100) + '%');
+
+          // 3D tilt
+          const rotateX = (y - 0.5) * -8;
+          const rotateY = (x - 0.5) * 8;
+          card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
         });
       });
 
