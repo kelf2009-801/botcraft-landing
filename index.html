@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BotCraft — Разработка Telegram-ботов премиум-класса</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #050508;
+      --bg-page: #0a0a10;
+      --bg-surface: #111118;
+      --bg-card: #14141e;
+      --gold: #d4a843;
+      --gold-light: #f0cc6e;
+      --gold-dark: #b8922e;
+      --text-primary: #ffffff;
+      --text-secondary: #b8b8c0;
+      --text-tertiary: #6e6e7a;
+      --border: rgba(255,255,255,0.06);
+      --border-gold: rgba(212,168,67,0.25);
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --gradient-blue: linear-gradient(135deg, #1a1a3e, #0d0d24);
+      --gradient-card: linear-gradient(145deg, #14141e, #1a1a2a);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-secondary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Gold glow orb ── */
+    .glow-orb {
+      position: fixed; pointer-events: none; z-index: 0;
+      border-radius: 50%; filter: blur(120px); opacity: 0.08;
+    }
+    .glow-orb.top { width: 600px; height: 600px; background: var(--gold); top: -200px; right: -150px; }
+    .glow-orb.mid { width: 400px; height: 400px; background: #6366f1; left: -100px; top: 50%; opacity: 0.05; }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,16,0.85); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 64px;
+    }
+    .logo {
+      font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 700;
+      color: var(--text-primary); display: flex; align-items: center; gap: 10px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); text-decoration: none; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px; border-radius: 8px;
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600;
+      text-decoration: none; cursor: pointer; transition: all 0.25s; border: none;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #0a0a10; box-shadow: 0 4px 20px rgba(212,168,67,0.3);
+    }
+    .btn-gold:hover { box-shadow: 0 6px 28px rgba(212,168,67,0.45); transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent; color: var(--text-primary);
+      border: 1px solid var(--border-gold);
+    }
+    .btn-outline:hover { border-color: var(--gold); background: rgba(212,168,67,0.05); }
+
+    /* ── Hero ── */
+    .hero {
+      max-width: 1200px; margin: 0 auto; padding: 100px 32px 80px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+      position: relative; z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 9999px;
+      border: 1px solid var(--border-gold);
+      font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 600;
+      color: var(--gold); margin-bottom: 20px;
+    }
+    .hero-badge::before { content: '⚡'; font-size: 14px; }
+    .hero h1 {
+      font-family: 'Montserrat', sans-serif; font-size: 52px; font-weight: 800;
+      line-height: 1.10; color: var(--text-primary); margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--gold); }
+    .hero p {
+      font-size: 17px; color: var(--text-tertiary);
+      max-width: 480px; margin-bottom: 32px; line-height: 1.65;
+    }
+    .hero-stats { display: flex; gap: 32px; margin-bottom: 32px; }
+    .hero-stat { text-align: center; }
+    .hero-stat-num {
+      font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 700;
+      color: var(--gold);
+    }
+    .hero-stat-label {
+      font-size: 12px; color: var(--text-tertiary);
+      font-family: 'Montserrat', sans-serif; font-weight: 500;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-visual {
+      position: relative; display: flex; align-items: center; justify-content: center;
+    }
+    .hero-avatar {
+      width: 320px; height: 320px; border-radius: 50%;
+      background: var(--gradient-card); border: 2px solid var(--border-gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 120px; position: relative; z-index: 1;
+      box-shadow: 0 0 80px rgba(212,168,67,0.1);
+    }
+    .hero-rings {
+      position: absolute; width: 420px; height: 420px; border-radius: 50%;
+      border: 1px solid rgba(212,168,67,0.12);
+      animation: ringPulse 4s ease-in-out infinite;
+    }
+    .hero-rings:nth-child(2) {
+      width: 500px; height: 500px; border-color: rgba(212,168,67,0.06);
+      animation-delay: 1s;
+    }
+    @keyframes ringPulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.05); opacity: 1; }
+    }
+
+    /* ── Section ── */
+    section { padding: 100px 32px; position: relative; z-index: 1; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-label {
+      font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700;
+      color: var(--gold); text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Montserrat', sans-serif; font-size: 40px; font-weight: 700;
+      color: var(--text-primary); line-height: 1.15; margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 17px; color: var(--text-tertiary); max-width: 560px;
+      margin-bottom: 48px;
+    }
+
+    /* ── Projects Grid ── */
+    .projects-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+    }
+    .project-card {
+      background: var(--gradient-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 32px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .project-card:hover {
+      border-color: var(--border-gold); transform: translateY(-2px);
+    }
+    .project-badge {
+      position: absolute; top: 16px; right: 16px;
+      padding: 4px 10px; border-radius: 6px;
+      font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600;
+    }
+    .project-badge.bestseller { background: rgba(212,168,67,0.15); color: var(--gold); }
+    .project-badge.new { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .project-badge.popular { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .project-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: rgba(212,168,67,0.08); border: 1px solid var(--border-gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 16px;
+    }
+    .project-card h3 {
+      font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700;
+      color: var(--text-primary); margin-bottom: 8px;
+    }
+    .project-card p {
+      font-size: 14px; color: var(--text-tertiary); line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .project-meta {
+      display: flex; gap: 16px; align-items: center;
+      font-family: 'Montserrat', sans-serif; font-size: 12px;
+      color: var(--text-tertiary);
+    }
+    .project-meta span { color: var(--gold); font-weight: 600; }
+    .project-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
+    }
+    .tag {
+      padding: 3px 10px; border-radius: 6px; border: 1px solid var(--border);
+      font-size: 11px; font-family: 'Montserrat', sans-serif; font-weight: 500;
+      color: var(--text-tertiary);
+    }
+
+    /* ── About / Skills ── */
+    .about-grid {
+      display: grid; grid-template-columns: 300px 1fr; gap: 48px; align-items: start;
+    }
+    .about-card {
+      background: var(--gradient-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 32px; text-align: center;
+    }
+    .about-avatar {
+      width: 100px; height: 100px; border-radius: 50%;
+      background: var(--gradient-blue); border: 2px solid var(--gold);
+      margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+    }
+    .about-card h3 {
+      font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700;
+      color: var(--text-primary); margin-bottom: 4px;
+    }
+    .about-role {
+      font-style: italic; color: var(--gold); font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .about-stat {
+      background: rgba(255,255,255,0.03); border-radius: 10px;
+      padding: 12px 8px; border: 1px solid var(--border);
+    }
+    .about-stat-num {
+      font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 700;
+      color: var(--gold);
+    }
+    .about-stat-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+    .about-content h3 {
+      font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 700;
+      color: var(--text-primary); margin-bottom: 16px;
+    }
+    .about-content p {
+      font-size: 15px; color: var(--text-tertiary); line-height: 1.65;
+      margin-bottom: 20px;
+    }
+    .tech-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .tech-badge {
+      padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02); font-family: 'Montserrat', sans-serif;
+      font-size: 12px; font-weight: 500; color: var(--text-secondary);
+      transition: border-color 0.2s;
+    }
+    .tech-badge:hover { border-color: var(--border-gold); }
+    .partners {
+      display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+    }
+    .partner {
+      font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600;
+      color: var(--text-tertiary); opacity: 0.5;
+    }
+
+    /* ── Testimonials ── */
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .testimonial-card {
+      background: var(--gradient-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 28px;
+    }
+    .testimonial-stars { color: var(--gold); font-size: 13px; margin-bottom: 12px; }
+    .testimonial-card p {
+      font-size: 14px; color: var(--text-secondary); line-height: 1.60;
+      font-style: italic; margin-bottom: 16px;
+    }
+    .testimonial-author {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .testimonial-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--gradient-blue); border: 1px solid var(--border-gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .testimonial-name {
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600;
+      color: var(--text-primary);
+    }
+    .testimonial-role { font-size: 11px; color: var(--text-tertiary); }
+
+    /* ── CTA ── */
+    .cta-section {
+      max-width: 900px; margin: 0 auto; text-align: center;
+      background: var(--gradient-card); border: 1px solid var(--border-gold);
+      border-radius: var(--radius-xl); padding: 60px 48px;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 300px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .cta-timer {
+      display: inline-flex; gap: 16px; margin-bottom: 28px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .cta-timer-block {
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px; text-align: center;
+    }
+    .cta-timer-num {
+      font-size: 28px; font-weight: 700; color: var(--gold); display: block;
+    }
+    .cta-timer-label {
+      font-size: 10px; color: var(--text-tertiary); text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cta-section h2 {
+      font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 700;
+      color: var(--text-primary); margin-bottom: 12px;
+    }
+    .cta-section p {
+      font-size: 16px; color: var(--text-tertiary); margin-bottom: 28px;
+    }
+    .cta-benefits {
+      display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .cta-benefit {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Montserrat', sans-serif; font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .cta-benefit-icon { color: var(--gold); font-size: 16px; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 40px 32px;
+      text-align: center;
+    }
+    footer .inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+    }
+    footer, footer a {
+      font-size: 13px; color: var(--text-tertiary); text-decoration: none;
+      font-family: 'Montserrat', sans-serif;
+    }
+    footer a:hover { color: var(--gold); }
+
+    /* ── Scroll Reveal ── */
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Card Glow ── */
+    .project-card::before, .testimonial-card::before, .about-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit;
+      background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(212,168,67,0.06), transparent 60%);
+      opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 0;
+    }
+    .project-card:hover::before, .testimonial-card:hover::before, .about-card:hover::before {
+      opacity: 1;
+    }
+    .project-card > *, .testimonial-card > *, .about-card > * {
+      position: relative; z-index: 1;
+    }
+
+    /* ── CTA line pulse ── */
+    .cta-section::before {
+      animation: linePulse 3s ease-in-out infinite;
+    }
+    @keyframes linePulse {
+      0%, 100% { opacity: 0.4; width: 300px; }
+      50% { opacity: 1; width: 500px; }
+    }
+
+    /* ── Reduced Motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { transition: none; }
+      .hero-rings { animation: none; }
+      .cta-section::before { animation: none; }
+      .glow-orb { display: none; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .hero {
+        grid-template-columns: 1fr; text-align: center; padding: 60px 24px 40px;
+      }
+      .hero h1 { font-size: 36px; }
+      .hero p { margin: 0 auto 24px; }
+      .hero-stats { justify-content: center; }
+      .hero-actions { justify-content: center; }
+      .hero-visual { display: none; }
+      .nav-links { display: none; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; }
+      .section-title { font-size: 30px; }
+      .cta-section { padding: 40px 24px; }
+      .cta-section h2 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Glow orbs -->
+  <div class="glow-orb top"></div>
+  <div class="glow-orb mid"></div>
+
+  <!-- Nav -->
+  <nav>
+    <div class="inner">
+      <div class="logo">
+        <div class="logo-icon">⚡</div>
+        Bot<span>Craft</span>
+      </div>
+      <div class="nav-links">
+        <a href="#projects">Проекты</a>
+        <a href="#about">Обо мне</a>
+        <a href="#testimonials">Отзывы</a>
+        <a href="#cta" class="btn btn-gold">Связаться</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div>
+      <div class="hero-badge">Топ-разработчик Telegram-ботов</div>
+      <h1>Создаю ботов,<br>которые <span>приносят<br>результат</span></h1>
+      <p>Автоматизация бизнеса, поддержка клиентов, продажи и аналитика — под ключ. От идеи до работающего продукта с реальными пользователями.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">40+</div>
+          <div class="hero-stat-label">Проектов</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">250K</div>
+          <div class="hero-stat-label">Пользователей</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">4.9</div>
+          <div class="hero-stat-label">Рейтинг</div>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <a href="#cta" class="btn btn-gold">Обсудить проект →</a>
+        <a href="#projects" class="btn btn-outline">▶ Смотреть портфолио</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-rings"></div>
+      <div class="hero-rings"></div>
+      <div class="hero-avatar">🤖</div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects">
+    <div class="section-inner">
+      <div class="section-label">Портфолио</div>
+      <h2 class="section-title">Избранные проекты</h2>
+      <p class="section-desc">Каждый бот — это законченный продукт, решающий реальную бизнес-задачу.</p>
+      <div class="projects-grid">
+        <div class="project-card">
+          <div class="project-badge bestseller">Bestseller</div>
+          <div class="project-icon">📦</div>
+          <h3>Логистический бот для склада</h3>
+          <p>Приём заказов, трекинг доставки, уведомления клиентам и менеджерам. Интеграция с 1С и Google Sheets.</p>
+          <div class="project-meta">
+            <span>★ 4.9</span> 12K пользователей
+          </div>
+          <div class="project-tags">
+            <span class="tag">Python</span><span class="tag">Aiogram</span><span class="tag">PostgreSQL</span><span class="tag">1С API</span>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-badge new">New</div>
+          <div class="project-icon">🎓</div>
+          <h3>Образовательная платформа</h3>
+          <p>Бот-школа с уроками, тестами, прогрессом учеников. Админка для преподавателей, оплата через Telegram Stars.</p>
+          <div class="project-meta">
+            <span>★ 5.0</span> 8K студентов
+          </div>
+          <div class="project-tags">
+            <span class="tag">Python</span><span class="tag">Aiogram</span><span class="tag">Redis</span><span class="tag">Payments API</span>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-badge popular">Popular</div>
+          <div class="project-icon">💬</div>
+          <h3>AI-поддержка для SaaS</h3>
+          <p>Умный саппорт-бот с RAG на базе документации. Автоответы на 80% типовых вопросов, эскалация на оператора.</p>
+          <div class="project-meta">
+            <span>★ 4.8</span> 45K диалогов
+          </div>
+          <div class="project-tags">
+            <span class="tag">Python</span><span class="tag">LangChain</span><span class="tag">OpenAI</span><span class="tag">Vector DB</span>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-badge bestseller">Bestseller</div>
+          <div class="project-icon">🛍</div>
+          <h3>Каталог интернет-магазина</h3>
+          <p>Витрина товаров с корзиной, оформлением заказа и оплатой. Панель управления для владельца.</p>
+          <div class="project-meta">
+            <span>★ 4.9</span> 15K заказов
+          </div>
+          <div class="project-tags">
+            <span class="tag">Python</span><span class="tag">Aiogram</span><span class="tag">MongoDB</span><span class="tag">YooKassa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="section-inner">
+      <div class="section-label">Кто делает</div>
+      <h2 class="section-title">О разработчике</h2>
+      <p class="section-desc">Не просто код — а продукт, который работает на ваш бизнес.</p>
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-avatar">👨‍💻</div>
+          <h3>Андрей</h3>
+          <div class="about-role">Founder & Lead Developer</div>
+          <div class="about-stats">
+            <div class="about-stat">
+              <div class="about-stat-num">3+</div>
+              <div class="about-stat-label">Года опыта</div>
+            </div>
+            <div class="about-stat">
+              <div class="about-stat-num">40+</div>
+              <div class="about-stat-label">Проектов</div>
+            </div>
+            <div class="about-stat">
+              <div class="about-stat-num">250K</div>
+              <div class="about-stat-label">Пользователей</div>
+            </div>
+            <div class="about-stat">
+              <div class="about-stat-num">4.9</div>
+              <div class="about-stat-label">Рейтинг</div>
+            </div>
+          </div>
+        </div>
+        <div class="about-content">
+          <h3>Разработка Telegram-ботов — это моё основное направление</h3>
+          <p>С 2022 года создаю ботов для бизнеса: от простых автоответчиков до сложных систем с AI, платежами и интеграциями. Каждый проект — это не просто код, а решение конкретной бизнес-задачи. Работаю напрямую, без посредников — вы получаете результат быстрее и дешевле.</p>
+          <div class="tech-badges">
+            <span class="tech-badge">Python</span>
+            <span class="tech-badge">Aiogram 3</span>
+            <span class="tech-badge">FastAPI</span>
+            <span class="tech-badge">PostgreSQL</span>
+            <span class="tech-badge">Redis</span>
+            <span class="tech-badge">MongoDB</span>
+            <span class="tech-badge">Docker</span>
+            <span class="tech-badge">OpenAI API</span>
+            <span class="tech-badge">LangChain</span>
+            <span class="tech-badge">YooKassa</span>
+            <span class="tech-badge">Telegram Stars</span>
+          </div>
+          <div class="partners">
+            <span class="partner">Telegram API</span>
+            <span class="partner">OpenAI</span>
+            <span class="partner">YooKassa</span>
+            <span class="partner">Google Cloud</span>
+            <span class="partner">1С</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section id="testimonials">
+    <div class="section-inner">
+      <div class="section-label">Отзывы</div>
+      <h2 class="section-title">Что говорят клиенты</h2>
+      <p class="section-desc">Реальные отзывы от реальных заказчиков.</p>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"Андрей сделал бота для нашего склада за 10 дней. Интеграция с 1С работала с первого дня. Очередь на отгрузку сократилась в 2 раза."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">🏭</div>
+            <div>
+              <div class="testimonial-name">Дмитрий К.</div>
+              <div class="testimonial-role">Логистическая компания</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"Запустили онлайн-школу в Telegram. 2000 учеников за первый месяц. Андрей продумал всё: от уроков до оплаты через Stars."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">📚</div>
+            <div>
+              <div class="testimonial-name">Анна М.</div>
+              <div class="testimonial-role">EdTech стартап</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"AI-саппорт-бот закрывает 80% вопросов пользователей без участия людей. Команда поддержки сократилась с 5 до 2 человек."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">💻</div>
+            <div>
+              <div class="testimonial-name">Сергей В.</div>
+              <div class="testimonial-role">SaaS-компания</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <div class="cta-section">
+      <div class="cta-timer">
+        <div class="cta-timer-block">
+          <span class="cta-timer-num">2</span>
+          <span class="cta-timer-label">места</span>
+        </div>
+        <div class="cta-timer-block">
+          <span class="cta-timer-num">июль</span>
+          <span class="cta-timer-label">2026</span>
+        </div>
+      </div>
+      <h2>Готовы запустить своего бота?</h2>
+      <p>Напишите мне — обсудим задачу, сроки и бюджет. Первая консультация бесплатно.</p>
+      <div class="cta-benefits">
+        <div class="cta-benefit"><span class="cta-benefit-icon">✓</span> Бесплатная консультация</div>
+        <div class="cta-benefit"><span class="cta-benefit-icon">✓</span> От 2 недель до запуска</div>
+        <div class="cta-benefit"><span class="cta-benefit-icon">✓</span> Поддержка после сдачи</div>
+      </div>
+      <a href="https://t.me/andrey" class="btn btn-gold">Написать в Telegram →</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="inner">
+      <span>© 2026 BotCraft. Разработка Telegram-ботов премиум-класса.</span>
+      <a href="https://t.me/andrey">@andrey</a>
+    </div>
+  </footer>
+
+  <script>
+    // ── Scroll Reveal ──
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('section, .project-card, .testimonial-card, .about-card, .cta-section')
+      .forEach(el => { el.classList.add('reveal'); observer.observe(el); });
+
+    // ── Mouse-Tracking Glow ──
+    document.querySelectorAll('.project-card, .testimonial-card, .about-card')
+      .forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const r = card.getBoundingClientRect();
+          card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+          card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+        });
+      });
+
+    // ── Mouse Glow Orbs ──
+    const orbs = document.querySelectorAll('.glow-orb');
+    document.addEventListener('mousemove', e => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      if (orbs[0]) orbs[0].style.transform = `translate(${x}px, ${y}px)`;
+      if (orbs[1]) orbs[1].style.transform = `translate(${-x}px, ${-y}px)`;
+    });
+
+    // ── Counter Animation ──
+    function animateCounter(el, target, suffix, duration) {
+      const start = performance.now();
+      const initial = parseFloat(target) || 0;
+      const isFloat = target.includes('.');
+      function tick(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = isFloat
+          ? (initial * eased).toFixed(1)
+          : Math.floor(initial * eased);
+        el.textContent = current + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          if (el.dataset.counted) return;
+          el.dataset.counted = '1';
+          const raw = el.textContent;
+          const match = raw.match(/^([\d.]+)(.*)$/);
+          if (match) animateCounter(el, match[1], match[2] || '', 1200);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.hero-stat-num, .about-stat-num')
+      .forEach(el => counterObserver.observe(el));
+  </script>
+
+</body>
+</html>
